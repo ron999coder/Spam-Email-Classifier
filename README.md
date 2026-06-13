@@ -67,12 +67,6 @@ labels = (df["label"] == "spam").astype(int).tolist()
 
 ---
 
-## ✅ Resume Bullet Points
-
-> - Built an **NLP-based Spam Email Classifier** using Python, Scikit-learn (Naive Bayes + TF-IDF), and NLTK; deployed via a Flask REST API with a responsive web UI
-> - Implemented a full ML pipeline — text preprocessing, feature extraction, model training, and serialization with Pickle
-> - Achieved real-time predictions with confidence scoring through a `/predict` API endpoint integrated with a vanilla JS frontend
-
 ---
 
 Built by **Ranojoy Saha** — B.Tech CSE (AI/ML), Techno International New Town
