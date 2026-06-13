@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spam Classifier | Ranojoy Saha</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">AI/ML Project</div>
+      <h1>Spam Email Classifier</h1>
+      <p class="subtitle">NLP-powered spam detection using TF-IDF + Naive Bayes</p>
+      <div class="tech-stack">
+        <span>Python</span><span>Scikit-learn</span><span>NLTK</span><span>Flask</span>
+      </div>
+    </header>
+
+    <main>
+      <div class="card input-card">
+        <label for="emailText">Paste email content below</label>
+        <textarea
+          id="emailText"
+          placeholder="e.g. Congratulations! You have won a $1000 gift card. Click here to claim now..."
+          rows="7"
+        ></textarea>
+        <div class="actions">
+          <button id="clearBtn" class="btn-secondary" onclick="clearInput()">Clear</button>
+          <button id="analyzeBtn" class="btn-primary" onclick="analyze()">
+            <span id="btnText">Analyze Email</span>
+            <span id="btnLoader" class="loader hidden"></span>
+          </button>
+        </div>
+      </div>
+
+      <div id="result" class="card result-card hidden">
+        <div id="resultIcon" class="result-icon"></div>
+        <div id="resultLabel" class="result-label"></div>
+        <div class="confidence-bar-wrap">
+          <div class="confidence-label">Confidence</div>
+          <div class="bar-track">
+            <div id="confidenceBar" class="bar-fill"></div>
+          </div>
+          <div id="confidenceText" class="confidence-pct"></div>
+        </div>
+      </div>
+
+      <div class="examples">
+        <p class="examples-label">Try an example:</p>
+        <div class="example-chips">
+          <button onclick="setExample('spam1')">💸 Prize Winner</button>
+          <button onclick="setExample('spam2')">⚠️ Account Alert</button>
+          <button onclick="setExample('ham1')">📅 Meeting Invite</button>
+          <button onclick="setExample('ham2')">📚 Class Update</button>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>Built by <strong>Ranojoy Saha</strong> &nbsp;·&nbsp; B.Tech CSE (AI/ML) &nbsp;·&nbsp;
+        <a href="https://github.com/ron999coder" target="_blank">GitHub</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    const examples = {
+      spam1: "Congratulations! You've won a $1,000 Walmart gift card. Click here to claim your reward now before it expires!",
+      spam2: "URGENT: Your bank account has been suspended due to suspicious activity. Call 1800-000-0000 immediately to restore access.",
+      ham1:  "Hey, just a reminder that our team standup is scheduled for 10am tomorrow. Please be on time and come prepared with your updates.",
+      ham2:  "The lecture notes for today's class have been uploaded to the student portal. The assignment deadline is this Sunday at 11:59pm."
+    };
+
+    function setExample(key) {
+      document.getElementById("emailText").value = examples[key];
+      document.getElementById("result").classList.add("hidden");
+    }
+
+    function clearInput() {
+      document.getElementById("emailText").value = "";
+      document.getElementById("result").classList.add("hidden");
+    }
+
+    async function analyze() {
+      const text = document.getElementById("emailText").value.trim();
+      if (!text) { alert("Please enter some email text."); return; }
+
+      const btn = document.getElementById("analyzeBtn");
+      document.getElementById("btnText").classList.add("hidden");
+      document.getElementById("btnLoader").classList.remove("hidden");
+      btn.disabled = true;
+
+      try {
+        const res = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        showResult(data);
+      } catch (e) {
+        alert("Error connecting to server.");
+      } finally {
+        document.getElementById("btnText").classList.remove("hidden");
+        document.getElementById("btnLoader").classList.add("hidden");
+        btn.disabled = false;
+      }
+    }
+
+    function showResult(data) {
+      const card = document.getElementById("result");
+      const icon = document.getElementById("resultIcon");
+      const label = document.getElementById("resultLabel");
+      const bar = document.getElementById("confidenceBar");
+      const pct = document.getElementById("confidenceText");
+
+      card.classList.remove("hidden", "spam", "ham");
+      card.classList.add(data.is_spam ? "spam" : "ham");
+
+      icon.textContent = data.is_spam ? "🚨" : "✅";
+      label.textContent = data.label;
+      pct.textContent = data.confidence + "%";
+
+      bar.style.width = "0%";
+      setTimeout(() => { bar.style.width = data.confidence + "%"; }, 50);
+    }
+  </script>
+</body>
+</html>
